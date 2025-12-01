@@ -1,25 +1,11 @@
-# Import python packages
 import streamlit as st
 import snowflake.connector
-#from snowflake.snowpark.context import get_active_session
-from snowflake.snowpark.functions import col
 
-# Write directly to the app
-st.title(f":cup_with_straw: Customize Your Smoothie :cup_with_straw:")
-st.write(
-  """Choose the fruits you want in your custom Smoothie!
-  """
-)
+st.title(":cup_with_straw: Customize Your Smoothie :cup_with_straw:")
 
-name_order=st.text_input('Name on Smoothie:')
-##st.write('The name on smoothie will be:',name_order)
-##option = st.selectbox(
- ##   "What is your favourite fruit?",
-##    ("Banana", "Strawberries", "Peaches"),
-##)
+name_order = st.text_input('Name on Smoothie:')
 
-##st.write("You selected:", option)
-
+# Connect to Snowflake
 conn = snowflake.connector.connect(
     user=st.secrets["snowflake"]["user"],
     password=st.secrets["snowflake"]["password"],
@@ -28,41 +14,20 @@ conn = snowflake.connector.connect(
     database=st.secrets["snowflake"]["database"],
     schema=st.secrets["snowflake"]["schema"],
 )
-#cnx=st.connection("snowflake", type="snowflake")
-#session = conn.session()
-
 cur = conn.cursor()
+
+# Fetch fruits
 cur.execute("SELECT FRUIT_NAME FROM smoothies.public.fruit_options")
-my_dataframe = [row[0] for row in cur.fetchall()] 
-#my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
-#st.dataframe(data=my_dataframe, use_container_width=True)
-in_list=st.multiselect('Choose up to 5 ingredients:'
-                       , my_dataframe
-                      ,max_selections=5)
+fruits_list = [row[0] for row in cur.fetchall()]
 
-if in_list:
- ##   st.write(in_list);
- ##   st.text(in_list);
+# Multiselect
+in_list = st.multiselect('Choose up to 5 ingredients:', fruits_list, max_selections=5)
 
-    in_string='';
-    
-    for each_fruit in in_list:
-        in_string+=each_fruit+' '
-    
- ##   st.write(in_string);
-
-  #  my_insert_stmt = """ insert into smoothies.public.orders(ingredients,NAME_ON_ORDER)
-#                values ('""" + in_string + """','"""+name_order+"""')"""
-
-        cur.execute(
+# Insert order
+if st.button("Submit Order") and in_list:
+    in_string = ' '.join(in_list)
+    cur.execute(
         "INSERT INTO smoothies.public.orders(ingredients, NAME_ON_ORDER) VALUES (%s, %s)",
-        ( in_string, name_order))
-
-##st.write(my_insert_stmt)
-
-    time_to_insert=st.button("Submit Order")
-    if time_to_insert:
-        session.sql(my_insert_stmt).collect()
-        st.success('Your Smoothie is ordered, '+name_order +'!', icon="✅")
-
-    
+        (in_string, name_order)
+    )
+    st.success(f'Your Smoothie is ordered, {name_order}!', icon="✅")
