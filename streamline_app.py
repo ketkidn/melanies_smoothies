@@ -71,10 +71,10 @@ if ingredients_list:
         api_url = f"https://my.smoothiefroot.com/api/fruit/{slug}/"
         response = requests.get(api_url)
 
-        if response.status_code == 200:
+       # if response.status_code == 200:
             st.dataframe(response.json(), use_container_width=True)
-        else:
-            st.error(f"Could not load data for {fruit_chosen}")
+       # else:
+          #  st.error(f"Could not load data for {fruit_chosen}")
 
 # -----------------------------
 # 6. INSERT ORDER INTO SNOWFLAKE
