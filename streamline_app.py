@@ -29,8 +29,12 @@ conn = snowflake.connector.connect(
     schema=st.secrets["snowflake"]["schema"],
 )
 #cnx=st.connection("snowflake", type="snowflake")
-session = conn.session()
-my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
+#session = conn.session()
+
+cur = conn.cursor()
+cur.execute("SELECT FRUIT_NAME FROM smoothies.public.fruit_options")
+my_dataframe = [row[0] for row in cur.fetchall()] 
+#my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
 #st.dataframe(data=my_dataframe, use_container_width=True)
 in_list=st.multiselect('Choose up to 5 ingredients:'
                        , my_dataframe
