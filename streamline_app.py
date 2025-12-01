@@ -22,25 +22,30 @@ cur = conn.cursor()
 cur.execute("SELECT FRUIT_NAME FROM smoothies.public.fruit_options")
 fruits_list = [row[0] for row in cur.fetchall()]
 
-
-smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/")
-#st.text(smoothiefroot_response.json())
-#sf_df= st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
 # Multiselect
 ingredients_list = st.multiselect('Choose up to 5 ingredients:', fruits_list, max_selections=5)
 
+# Show nutrition info
 if ingredients_list:
     ingredients_string = ''
     
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
-        st.subheader(fruit_chosen + 'Nutrition Information')
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit" + fruit_chosen)
-        sf_df= st.dataframe(data=smoothiefroot_response.json(), use_container_width=True) 
+
+        st.subheader(f"{fruit_chosen} Nutrition Information")
+        
+        api_url = f"https://my.smoothiefroot.com/api/fruit/{fruit_chosen.lower()}/"
+        smoothiefroot_response = requests.get(api_url)
+
+        # Safety check
+        if smoothiefroot_response.status_code == 200:
+            st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+        else:
+            st.error(f"Could not load data for {fruit_chosen}")
 
 # Insert order
-if st.button("Submit Order") and in_list:
-    in_string = ' '.join(in_list)
+if st.button("Submit Order") and ingredients_list:
+    in_string = ' '.join(ingredients_list)
     cur.execute(
         "INSERT INTO smoothies.public.orders(ingredients, NAME_ON_ORDER) VALUES (?, ?)",
         (in_string, name_order)
