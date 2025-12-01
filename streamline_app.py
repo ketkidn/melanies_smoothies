@@ -31,8 +31,8 @@ fruits_list = [row[0] for row in cur.fetchall()]
 # 3. MAP FRIENDLY NAMES → API SLUGS
 # -----------------------------
 friendly_to_api = {
-    "Apples": "apple",
-    "Apple": "apple",
+    "Apples": "apples",
+    "Apple": "apples",
     "Strawberries": "strawberry",
     "Strawberry": "strawberry",
     "Watermelon": "watermelon",
