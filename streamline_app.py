@@ -68,7 +68,7 @@ if ingredients_list:
             continue
 
         # API call
-        api_url = f"https://my.smoothiefroot.com/api/fruit/apple"
+        api_url = f"https://my.smoothiefroot.com/api/fruit/{slug}"
         response = requests.get(api_url)
 
        # if response.status_code == 200:
