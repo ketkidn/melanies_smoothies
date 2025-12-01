@@ -27,7 +27,7 @@ in_list = st.multiselect('Choose up to 5 ingredients:', fruits_list, max_selecti
 if st.button("Submit Order") and in_list:
     in_string = ' '.join(in_list)
     cur.execute(
-        "INSERT INTO smoothies.public.orders(ingredients, NAME_ON_ORDER) VALUES (%s, %s)",
+        "INSERT INTO smoothies.public.orders(ingredients, NAME_ON_ORDER) VALUES (?, ?)",
         (in_string, name_order)
     )
     st.success(f'Your Smoothie is ordered, {name_order}!', icon="✅")
