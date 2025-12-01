@@ -54,7 +54,7 @@ if in_list:
   #  my_insert_stmt = """ insert into smoothies.public.orders(ingredients,NAME_ON_ORDER)
 #                values ('""" + in_string + """','"""+name_order+"""')"""
 
-  cur.execute(
+cur.execute(
     "INSERT INTO smoothies.public.orders(ingredients, NAME_ON_ORDER) VALUES (%s, %s)",
     (in_string, name_order)
 )
