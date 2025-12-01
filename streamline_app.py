@@ -5,9 +5,12 @@ import requests
 
 st.title(":cup_with_straw: Customize Your Smoothie :cup_with_straw:")
 
+# Smoothie name
 name_order = st.text_input("Name on Smoothie:")
 
-# --- CONNECT TO SNOWFLAKE ---
+# -----------------------------
+# 1. CONNECT TO SNOWFLAKE
+# -----------------------------
 conn = snowflake.connector.connect(
     user=st.secrets["snowflake"]["user"],
     password=st.secrets["snowflake"]["password"],
@@ -18,48 +21,53 @@ conn = snowflake.connector.connect(
 )
 cur = conn.cursor()
 
-# --- FETCH FRUITS FROM SNOWFLAKE ---
+# -----------------------------
+# 2. FETCH FRUITS FROM TABLE
+# -----------------------------
 cur.execute("SELECT FRUIT_NAME FROM smoothies.public.fruit_options")
 fruits_list = [row[0] for row in cur.fetchall()]
 
+# -----------------------------
+# 3. MAP FRIENDLY NAMES → API SLUGS
+# -----------------------------
+friendly_to_api = {
+    "Apples": "apple",
+    "Apple": "apple",
+    "Strawberries": "strawberry",
+    "Strawberry": "strawberry",
+    "Watermelon": "watermelon",
+    "Tangerine": "tangerine",
+    "Banana": "banana",
+    "Bananas": "banana",
+    "Blueberries": "blueberry",
+    "Blueberry": "blueberry"
+}
 
-# --- LOAD FRUIT INDEX (API SLUGS) ---
-@st.cache_data
-def load_fruit_index():
-    url = "https://my.smoothiefroot.com/api/fruit/"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        # Make a lookup: "Strawberries" → "strawberry"
-        return {item["name"]: item["slug"] for item in data}
-    return {}
-
-fruit_slug_map = load_fruit_index()
-
-
-# --- MULTISELECT ---
+# -----------------------------
+# 4. MULTISELECT
+# -----------------------------
 ingredients_list = st.multiselect(
     "Choose up to 5 ingredients:",
     fruits_list,
     max_selections=5
 )
 
-
-# --- SHOW NUTRITION INFO FOR SELECTED FRUITS ---
+# -----------------------------
+# 5. SHOW NUTRITION FOR EACH FRUIT
+# -----------------------------
 if ingredients_list:
-    ingredients_string = ""
 
     for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + " "
-
         st.subheader(f"{fruit_chosen} Nutrition Information")
 
-        # Get correct slug
-        slug = fruit_slug_map.get(fruit_chosen)
+        # Get API slug
+        slug = friendly_to_api.get(fruit_chosen)
+
         if not slug:
             st.error(f"No API slug found for {fruit_chosen}")
             continue
 
+        # API call
         api_url = f"https://my.smoothiefroot.com/api/fruit/{slug}/"
         response = requests.get(api_url)
 
@@ -68,14 +76,19 @@ if ingredients_list:
         else:
             st.error(f"Could not load data for {fruit_chosen}")
 
-
-# --- SUBMIT ORDER TO SNOWFLAKE ---
+# -----------------------------
+# 6. INSERT ORDER INTO SNOWFLAKE
+# -----------------------------
 if st.button("Submit Order") and ingredients_list:
-    in_string = ", ".join(ingredients_list)  # nicer formatting
+
+    in_string = " ".join(ingredients_list)
 
     cur.execute(
-        "INSERT INTO smoothies.public.orders (INGREDIENTS, NAME_ON_ORDER) VALUES (?, ?)",
+        """
+        INSERT INTO smoothies.public.orders(ingredients, NAME_ON_ORDER)
+        VALUES (%s, %s)
+        """,
         (in_string, name_order)
     )
 
-    st.success(f"Your Smoothie is ordered, {name_order}! ")
+    st.success(f"Your Smoothie is ordered, {name_order}!", icon="✅")
