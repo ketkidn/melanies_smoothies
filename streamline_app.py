@@ -24,7 +24,7 @@ fruits_list = [row[0] for row in cur.fetchall()]
 
 
 smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-st.text(smoothiefroot_response)
+st.text(smoothiefroot_response.json)
 # Multiselect
 in_list = st.multiselect('Choose up to 5 ingredients:', fruits_list, max_selections=5)
 
