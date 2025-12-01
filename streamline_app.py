@@ -72,7 +72,7 @@ if ingredients_list:
         response = requests.get(api_url)
 
        # if response.status_code == 200:
-            st.dataframe(response.json(), use_container_width=True)
+        st.dataframe(response.json(), use_container_width=True)
        # else:
           #  st.error(f"Could not load data for {fruit_chosen}")
 
