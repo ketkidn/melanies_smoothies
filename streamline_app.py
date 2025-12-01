@@ -1,5 +1,7 @@
 import streamlit as st
 import snowflake.connector
+import requests
+
 
 st.title(":cup_with_straw: Customize Your Smoothie :cup_with_straw:")
 
@@ -20,6 +22,9 @@ cur = conn.cursor()
 cur.execute("SELECT FRUIT_NAME FROM smoothies.public.fruit_options")
 fruits_list = [row[0] for row in cur.fetchall()]
 
+
+smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
+st.text(smoothiefroot_response)
 # Multiselect
 in_list = st.multiselect('Choose up to 5 ingredients:', fruits_list, max_selections=5)
 
