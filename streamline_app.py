@@ -1,5 +1,6 @@
 # Import python packages
 import streamlit as st
+import snowflake.connector
 #from snowflake.snowpark.context import get_active_session
 from snowflake.snowpark.functions import col
 
@@ -19,9 +20,16 @@ name_order=st.text_input('Name on Smoothie:')
 
 ##st.write("You selected:", option)
 
-
-cnx=st.connection("snowflake", type="snowflake")
-session = cnx.session()
+conn = snowflake.connector.connect(
+    user=st.secrets["snowflake"]["user"],
+    password=st.secrets["snowflake"]["password"],
+    account=st.secrets["snowflake"]["account"],
+    warehouse=st.secrets["snowflake"]["warehouse"],
+    database=st.secrets["snowflake"]["database"],
+    schema=st.secrets["snowflake"]["schema"],
+)
+#cnx=st.connection("snowflake", type="snowflake")
+session = conn.session()
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
 #st.dataframe(data=my_dataframe, use_container_width=True)
 in_list=st.multiselect('Choose up to 5 ingredients:'
